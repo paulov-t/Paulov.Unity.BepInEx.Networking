@@ -1,0 +1,39 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.1</TargetFramework>
+    <AssemblyName>Paulov.UnityBepInExNetworking</AssemblyName>
+    <Product>Paulov.Tarkov.Minimal</Product>
+    <Version>$([System.DateTime]::Now.ToString("yyyy.MM.dd.HHmm"))</Version>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <LangVersion>latest</LangVersion>
+    <RestoreAdditionalProjectSources>
+      https://api.nuget.org/v3/index.json;
+      https://nuget.bepinex.dev/v3/index.json;
+      https://nuget.samboy.dev/v3/index.json
+    </RestoreAdditionalProjectSources>
+    <RootNamespace>Paulov.UnityBepInExNetworking</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="ThirdParty\LiteNetLib\LiteNetLib.csproj" />
+    <None Include="ThirdParty\Nat\Open.Nat\Open.Nat.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="BepInEx.Core" Version="5.*" />
+    <PackageReference Include="BepInEx.PluginInfoProps" Version="2.*" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+	  <!-- Paulov: Note. This isn't the version Tarkov is using but it is the latest available on Nuget. -->
+    <PackageReference Include="UnityEngine.Modules" Version="2021.3.33" IncludeAssets="compile" />
+  </ItemGroup>
+  
+  <ItemGroup Condition="'$(TargetFramework.TrimEnd(`0123456789`))' == 'net'">
+    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.2" PrivateAssets="all" />
+  </ItemGroup>
+
+	<PropertyGroup Condition="'$(Configuration)'=='Release'">
+		<DebugSymbols>False</DebugSymbols>
+		<DebugType>None</DebugType>
+	</PropertyGroup>
+</Project>

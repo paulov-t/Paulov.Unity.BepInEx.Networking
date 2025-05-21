@@ -1,0 +1,50 @@
+name: CI
+
+on:
+  pull_request:
+    types:
+      - opened
+      - synchronize
+      - reopened
+    paths-ignore:
+      - '.github/**'
+      - '*.md'
+    branches:
+      - "master"
+
+  workflow_dispatch:
+
+jobs:
+  Build:
+
+    strategy:
+      matrix:
+        configuration: [Release]
+
+    runs-on: ubuntu-latest
+
+    env:
+      SolutionName: Paulov.UnityBepInExNetworking
+      ProjectClient: Paulov.UnityBepInExNetworking.csproj
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          lfs: true
+          fetch-depth: 0
+
+      - name: Setup .NET Core
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      # Restore all projects
+      - name: dotnet Restore
+        run: dotnet restore
+
+      # Build the project
+      - name: dotnet Publish
+        run: |
+          mkdir ${{ env.SolutionName }}-${{ matrix.configuration }}
+          dotnet build ${{ env.ProjectClient }} -c ${{ matrix.configuration }} -o ${{ env.SolutionName }}-${{ matrix.configuration }}

@@ -1,0 +1,74 @@
+name: CD
+
+on:
+    workflow_dispatch:
+
+
+permissions:
+  contents: write
+
+jobs:
+  
+  build:
+    permissions: write-all
+
+    strategy:
+      matrix:
+        configuration: [Release]
+
+    runs-on: windows-latest 
+
+    env:
+      SolutionName: Paulov.Tarkov.Minimal                              
+      CSProj: Paulov.Tarkov.Minimal.csproj               
+      DllName: Paulov.Tarkov.Minimal               
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+      with:
+        lfs: true
+        fetch-depth: 0
+
+    # Install the .NET Core workload
+    - name: Install .NET Core
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: 8.0.x
+
+    # Add MSBuild to the PATH: https://github.com/microsoft/setup-msbuild
+    - name: Setup MSBuild.exe
+      uses: microsoft/setup-msbuild@v1.0.2
+
+    # Restore all projects
+    - name: Restore
+      run: |
+          dotnet restore
+
+      # Build the project
+    - name: Build
+      run: |
+          dotnet build ${{ env.ProjectClient }} -c Release -o ${{ env.DllName }}
+
+    - name: Get version from DLL
+      id: extract-version
+      run: |
+        $version = [System.Diagnostics.FileVersionInfo]::GetVersionInfo("${{ env.DllName }}\${{ env.DllName }}.dll").ProductVersion
+        echo "::set-output name=VERSION::$version"
+
+    - name: Display Version in Logs
+      run: echo "The extracted version is ${{ steps.extract-version.outputs.VERSION }}"
+
+    - name: Zip remaining files
+      run: |
+          Compress-Archive -Path "${{ env.DllName }}\${{ env.DllName }}.dll" -DestinationPath ${{ env.DllName }}.zip
+ 
+    # Create release as draft from the compressed file
+    - name: Create Release
+      uses: softprops/action-gh-release@v1
+      if: ${{ matrix.configuration == 'Release' }}
+      with:
+          draft: true
+          generate_release_notes: true
+          files: ${{ env.DllName }}.zip
+          tag_name: Paulov.Tarkov.Minimal-${{ steps.extract-version.outputs.VERSION }}
